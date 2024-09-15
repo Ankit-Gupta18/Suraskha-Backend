@@ -16,11 +16,11 @@ class DBManager:
         if cls._connection_pool is None:
             try:
                 db_config = {
-                    'host': os.environ.get("GURU_DB_HOST", ""),
-                    'port': os.environ.get("GURU_DB_PORT", ""),
-                    'database': os.environ.get("GURU_DB_DATABASE", ""),
-                    'user': os.environ.get("GURU_DB_USER", ""),
-                    'password': os.environ.get("GURU_DB_PASSWORD", "")
+                    'host': os.environ.get("SURAKSHA_DB_HOST", ""),
+                    'port': os.environ.get("SURAKSHA_DB_PORT", ""),
+                    'database': os.environ.get("SURAKSHA_DB_DATABASE", ""),
+                    'user': os.environ.get("SURAKSHA_DB_USER", ""),
+                    'password': os.environ.get("SURAKSHA_DB_PASSWORD", "")
                 }
                 cls._connection_pool = psycopg2.pool.SimpleConnectionPool(10, 10, **db_config)
                 print("Initialized database connection pool successfully.")
