@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException
-from routers import adhaar_router
+from routers.login import user_signup
 from dotenv import load_dotenv
 
 load_dotenv()
 app = FastAPI()
 
-app.include_router(adhaar_router.router)
+app.include_router(user_signup.router)
 
 @app.get("/")
 async def read_root():
