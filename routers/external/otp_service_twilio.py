@@ -16,4 +16,4 @@ def send_otp_via_twilio(phone_number: str, otp: str):
         to=f"{phone_number}"
     )
 
-    print(f"Message sent: {message.sid}")
+    print(f"Message sent with OTP!")
