@@ -1,50 +1,92 @@
--- Create user_auth_db table
-CREATE TABLE user_auth_db (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    adhaar_number VARCHAR(12) NOT NULL UNIQUE,
-    state VARCHAR(100),
-    age_group VARCHAR(20),
-    gender VARCHAR(10),
-    phone_number VARCHAR(15) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    avatar BYTEA,  -- Storing the image as binary data (BYTEA)
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- DROP SCHEMA public;
+
+CREATE SCHEMA public AUTHORIZATION pg_database_owner;
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
+-- DROP SEQUENCE public.police_auth_db_id_seq;
+
+CREATE SEQUENCE public.police_auth_db_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
+-- DROP SEQUENCE public.user_auth_db_id_seq;
+
+CREATE SEQUENCE public.user_auth_db_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;-- public.police_auth_db definition
+
+-- Drop table
+
+-- DROP TABLE public.police_auth_db;
+
+CREATE TABLE public.police_auth_db (
+	id serial4 NOT NULL,
+	"name" varchar(255) NOT NULL,
+	police_id varchar(50) NOT NULL,
+	police_station_address varchar(255) NOT NULL,
+	phone_number varchar(15) NOT NULL,
+	email varchar(255) NOT NULL,
+	id_card bytea NULL,
+	avatar bytea NULL,
+	updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+	created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT police_auth_db_email_key UNIQUE (email),
+	CONSTRAINT police_auth_db_phone_number_key UNIQUE (phone_number),
+	CONSTRAINT police_auth_db_pkey PRIMARY KEY (id),
+	CONSTRAINT police_auth_db_police_id_key UNIQUE (police_id)
+);
+
+-- Table Triggers
+
+create trigger update_police_auth_timestamp before
+update
+    on
+    public.police_auth_db for each row execute function update_timestamp();
+
+
+-- public.user_auth_db definition
+
+-- Drop table
+
+-- DROP TABLE public.user_auth_db;
+
+CREATE TABLE public.user_auth_db (
+	id serial4 NOT NULL,
+	"name" varchar(255) NOT NULL,
+	aadhaar_number varchar(12) NOT NULL,
+	state varchar(100) NULL,
+	age_group varchar(20) NULL,
+	gender varchar(10) NULL,
+	phone_number varchar(15) NOT NULL,
+	email varchar(255) NOT NULL,
+	avatar bytea NULL,
+	updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+	created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT user_auth_db_adhaar_number_key UNIQUE (aadhaar_number),
+	CONSTRAINT user_auth_db_email_key UNIQUE (email),
+	CONSTRAINT user_auth_db_phone_number_key UNIQUE (phone_number),
+	CONSTRAINT user_auth_db_pkey PRIMARY KEY (id)
 );
 
 
--- Create police_auth_db table
-CREATE TABLE police_auth_db (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    police_id VARCHAR(50) NOT NULL UNIQUE,
-    police_station_address VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(15) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    id_card BYTEA,  -- Storing the ID card image as binary data (BYTEA)
-    avatar BYTEA,   -- Storing the avatar image as binary data (BYTEA)
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
--- Triggers for updating 'updated_at' on row modification for both tables
-CREATE OR REPLACE FUNCTION update_timestamp() 
-RETURNS TRIGGER AS $$
+-- DROP FUNCTION public.update_timestamp();
+
+CREATE OR REPLACE FUNCTION public.update_timestamp()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
-
--- Trigger for user_auth_db
-CREATE TRIGGER update_user_auth_timestamp
-BEFORE UPDATE ON user_auth_db
-FOR EACH ROW
-EXECUTE FUNCTION update_timestamp();
-
--- Trigger for police_auth_db
-CREATE TRIGGER update_police_auth_timestamp
-BEFORE UPDATE ON police_auth_db
-FOR EACH ROW
-EXECUTE FUNCTION update_timestamp();
+$function$
+;
