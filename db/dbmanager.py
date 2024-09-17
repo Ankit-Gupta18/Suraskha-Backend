@@ -99,6 +99,54 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
+    
+    def get_police_by_phone(self, phone_number):
+        try:
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                query = "SELECT * FROM police_auth_db WHERE phone_number = %s"
+                cursor.execute(query, (phone_number,))
+                record = cursor.fetchone()
+                return record
+        except Exception as e:
+            print(f"Error: Unable to fetch user with phone number {phone_number}.")
+            print(e)
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+    def insert_police_auth(self, payload: dict, table_name: str = "police_auth_db"):
+        try:
+            # Extracting the payload values
+            name = payload.get("name")
+            police_id = payload.get("police_id")
+            police_station_address = payload.get("police_station_address")
+            phone_number = payload.get("phone_number")
+            email = payload.get("email")
+            id_card = payload.get("id_card")
+            
+            query = f"""
+                INSERT INTO {table_name} 
+                (name, police_id, police_station_address, phone_number, email, id_card, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (name, police_id, police_station_address, phone_number, email, id_card))
+                connection.commit()
+                return {"status": "success", "message": "Record inserted successfully"}
+        except Exception as e:
+            print(f"Error: Unable to insert record into {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+
 
     
 
@@ -109,7 +157,7 @@ class DBManager:
     def close_connection(self):
         if self._connection_pool:
             self._connection_pool.closeall()
-            logger.info("Connection closed.")
+            print("Connection closed.")
 
 
 

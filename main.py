@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
-from routers.login import user_signup
+from routers.login_signup import user_signup, police_signup
 from dotenv import load_dotenv
 
 load_dotenv()
 app = FastAPI()
 
 app.include_router(user_signup.router)
+app.include_router(police_signup.router)
 
 @app.get("/")
 async def read_root():
