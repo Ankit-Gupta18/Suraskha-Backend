@@ -146,6 +146,33 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
+    def insert_feedback(self, payload: dict, table_name: str = "feedback_db"):
+        try:
+            # Extracting the payload values
+            name = payload.get("name")
+            email = payload.get("email")
+            feedback = payload.get("feedback")
+            stars = payload.get("stars")
+            
+            query = f"""
+                INSERT INTO {table_name} 
+                (name, email, feedback, stars, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (name, email, feedback, stars))
+                connection.commit()
+                return {"status": "success", "message": "Feedback inserted successfully"}
+        except Exception as e:
+            print(f"Error: Unable to insert feedback into {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
 
 
     
