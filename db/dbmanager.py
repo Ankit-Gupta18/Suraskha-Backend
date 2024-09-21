@@ -174,6 +174,116 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
+    def insert_user_contact(self, payload: dict, table_name: str = "user_contacts"):
+        try:
+            # Extracting the payload values
+            aadhaar_number = payload.get("aadhaar_number")
+            name = payload.get("name")
+            relation = payload.get("relation")
+            phone_number = payload.get("phone_number")
+            email = payload.get("email")
+            status = payload.get("status")
+            priority = payload.get("priority")
+            latitude = payload.get("latitude")
+            longitude = payload.get("longitude")
+            
+            query = f"""
+                INSERT INTO {table_name} 
+                (aadhaar_number, name, relation, phone_number, email, status, priority, latitude, longitude, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (
+                    aadhaar_number, name, relation, phone_number, email, status, priority, latitude, longitude
+                ))
+                connection.commit()
+                return {"status": "success", "message": "User contact inserted successfully"}
+        except Exception as e:
+            print(f"Error: Unable to insert contact into {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+    def delete_user_contact_by_phone(self, phone_number: str, table_name: str = "user_contacts"):
+        try:
+            # SQL query to delete the contact based on the phone number
+            query = f"""
+                DELETE FROM {table_name}
+                WHERE phone_number = %s;
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (phone_number,))
+                connection.commit()
+
+                # Check if any rows were affected (i.e., if the contact existed)
+                if cursor.rowcount == 0:
+                    return {"status": "error", "message": "No contact found with the given phone number"}
+                return {"status": "success", "message": "User contact deleted successfully"}
+        except Exception as e:
+            print(f"Error: Unable to delete contact from {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+    def update_user_contact_by_phone(self, payload: dict, table_name: str = "user_contacts"):
+        try:
+            # Extracting the values from the payload
+            aadhaar_number = payload.get("aadhaar_number")
+            name = payload.get("name")
+            relation = payload.get("relation")
+            phone_number = payload.get("phone_number")
+            new_phone_number = payload.get("phone_number")
+            email = payload.get("email")
+            status = payload.get("status")
+            priority = payload.get("priority")
+            latitude = payload.get("latitude")
+            longitude = payload.get("longitude")
+
+            # SQL query to update the user contact details
+            query = f"""
+                UPDATE {table_name}
+                SET aadhaar_number = %s,
+                    name = %s,
+                    relation = %s,
+                    phone_number = %s,
+                    email = %s,
+                    status = %s,
+                    priority = %s,
+                    latitude = %s,
+                    longitude = %s,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE phone_number = %s;
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (
+                    aadhaar_number, name, relation, new_phone_number, email, status, priority, latitude, longitude, phone_number
+                ))
+                connection.commit()
+
+                # Check if any rows were affected (i.e., if the contact existed)
+                if cursor.rowcount == 0:
+                    return {"status": "error", "message": "No contact found with the given phone number"}
+                return {"status": "success", "message": "User contact updated successfully"}
+        except Exception as e:
+            print(f"Error: Unable to update contact in {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
 
     
 
