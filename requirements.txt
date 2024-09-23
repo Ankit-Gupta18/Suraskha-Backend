@@ -4,4 +4,8 @@ python-dotenv
 requests
 psycopg2-binary
 pydantic
+py_olamaps
 twilio
+pandas
+geohash2
+scikit-learn

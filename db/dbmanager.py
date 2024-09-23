@@ -285,6 +285,27 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
+    def fetch_location_ratings(self, table_name: str = "location_ratings"):
+        try:
+            # SQL query to fetch location ratings
+            query = f"SELECT id, latitude, longitude, frequency, rating FROM {table_name};"
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query)
+                rows = cursor.fetchall()
+
+                # Fetch column names from cursor
+                column_names = [desc[0] for desc in cursor.description]
+
+                # Create a DataFrame from the fetched rows
+                location_rating_table = pd.DataFrame(rows, columns=column_names)
+
+                return location_rating_table
+        except Exception as e:
+            print(f"Error: Unable to fetch data from {table_name}.")
+            print(e)
+            return None
     
 
     @staticmethod
