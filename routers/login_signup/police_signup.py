@@ -22,7 +22,7 @@ class SignupRequest(BaseModel):
     police_station_address: str
     phone_number: str
     email: str
-    id_card: bytearray
+    id_card: str
 
 # Request payload model for OTP verification
 class VerifyOTPRequest(BaseModel):
@@ -51,7 +51,7 @@ async def user_signup(payload: SignupRequest):
         "police_station_address": payload.police_station_address,
         "phone_number": payload.phone_number,
         "email": payload.email,
-        "id_card": payload.id_card
+        "id_card": base64.b64decode(payload.id_card.encode('utf-8'))
     }
 
     return {"status": "ok", "message": "OTP sent successfully"}
