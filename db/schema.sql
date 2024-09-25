@@ -95,6 +95,7 @@ CREATE TABLE public.location_rating (
 );
 
 
+
 -- public.police_auth_db definition
 
 -- Drop table
