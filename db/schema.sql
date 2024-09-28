@@ -4,6 +4,15 @@ CREATE SCHEMA public AUTHORIZATION pg_database_owner;
 
 COMMENT ON SCHEMA public IS 'standard public schema';
 
+-- DROP SEQUENCE public.chat_messages_id_seq;
+
+CREATE SEQUENCE public.chat_messages_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 2147483647
+	START 1
+	CACHE 1
+	NO CYCLE;
 -- DROP SEQUENCE public.feedback_id_seq;
 
 CREATE SEQUENCE public.feedback_id_seq
@@ -57,7 +66,23 @@ CREATE SEQUENCE public.user_history_id_seq
 	MAXVALUE 2147483647
 	START 1
 	CACHE 1
-	NO CYCLE;-- public.feedback definition
+	NO CYCLE;-- public.chat_messages definition
+
+-- Drop table
+
+-- DROP TABLE public.chat_messages;
+
+CREATE TABLE public.chat_messages (
+	id serial4 NOT NULL,
+	sender_id int4 NOT NULL,
+	receiver_id int4 NOT NULL,
+	message text NOT NULL,
+	"timestamp" timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT chat_messages_pkey PRIMARY KEY (id)
+);
+
+
+-- public.feedback definition
 
 -- Drop table
 
@@ -93,7 +118,6 @@ CREATE TABLE public.location_rating (
 	CONSTRAINT location_rating_pkey PRIMARY KEY (id),
 	CONSTRAINT location_rating_rating_check CHECK (((rating >= '-5'::integer) AND (rating <= 5)))
 );
-
 
 
 -- public.police_auth_db definition
