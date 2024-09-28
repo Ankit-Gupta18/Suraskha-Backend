@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>One-to-One Chat Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+        .chat-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .connection-form input {
+            width: 45%;
+            padding: 10px;
+            margin: 5px 2.5%;
+            box-sizing: border-box;
+        }
+        .connection-form button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .connection-form button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        .chat-box {
+            display: none;
+            margin-top: 20px;
+        }
+        .messages {
+            border: 1px solid #ddd;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: #fafafa;
+        }
+        .messages p {
+            margin: 5px 0;
+        }
+        .messages .sender {
+            color: blue;
+            font-weight: bold;
+        }
+        .messages .receiver {
+            color: green;
+            font-weight: bold;
+        }
+        .send-form {
+            display: flex;
+            margin-top: 10px;
+        }
+        .send-form input {
+            flex: 1;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .send-form button {
+            padding: 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .send-form button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>One-to-One Chat Test</h2>
+        
+        <div class="connection-form">
+            <input type="number" id="sender_id" placeholder="Your User ID" required>
+            <input type="number" id="receiver_id" placeholder="Receiver User ID" required>
+            <button id="connect-btn">Connect</button>
+            <button id="disconnect-btn" disabled>Disconnect</button>
+        </div>
+        
+        <div class="chat-box">
+            <div class="messages" id="messages"></div>
+            <form class="send-form" id="send-form">
+                <input type="text" id="message_input" placeholder="Type your message..." required autocomplete="off">
+                <button type="submit">Send</button>
+            </form>
+            <div class="status" id="status">Connected as User <span id="current_user"></span></div>
+        </div>
+    </div>
+    
+    <script>
+        let websocket = null;
+
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const senderInput = document.getElementById('sender_id');
+        const receiverInput = document.getElementById('receiver_id');
+        const chatBox = document.querySelector('.chat-box');
+        const messagesDiv = document.getElementById('messages');
+        const sendForm = document.getElementById('send-form');
+        const messageInput = document.getElementById('message_input');
+        const statusDiv = document.getElementById('status');
+        const currentUserSpan = document.getElementById('current_user');
+
+        connectBtn.addEventListener('click', () => {
+            const sender_id = senderInput.value.trim();
+            const receiver_id = receiverInput.value.trim();
+
+            if (!sender_id || !receiver_id) {
+                alert("Please enter both User ID and Receiver ID.");
+                return;
+            }
+
+            // Adjust the WebSocket URL as per your server's address and port
+            const ws_url = `ws://${window.location.host}/ws/chat/${sender_id}/${receiver_id}`;
+
+            websocket = new WebSocket(ws_url);
+
+            websocket.onopen = () => {
+                console.log('WebSocket connection established.');
+                chatBox.style.display = 'block';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                senderInput.disabled = true;
+                receiverInput.disabled = true;
+                currentUserSpan.textContent = sender_id;
+                appendMessage('System', 'Connected to the chat server.');
+            };
+
+            websocket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.history) {
+                    data.history.forEach(msg => {
+                        const sender = msg.sender_id === parseInt(sender_id) ? 'You' : 'Receiver';
+                        appendMessage(sender, msg.message, msg.timestamp);
+                    });
+                } else if (data.sender_id && data.message) {
+                    appendMessage('Receiver', data.message, new Date().toISOString());
+                } else if (data.system) {
+                    appendMessage('System', data.system);
+                }
+            };
+
+            websocket.onclose = () => {
+                console.log('WebSocket connection closed.');
+                chatBox.style.display = 'none';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                senderInput.disabled = false;
+                receiverInput.disabled = false;
+                appendMessage('System', 'Disconnected from the chat server.');
+            };
+
+            websocket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                alert('WebSocket error. Check the console for more details.');
+            };
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (websocket) {
+                websocket.close();
+            }
+        });
+
+        sendForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (message && websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(message);
+                appendMessage('You', message);
+                messageInput.value = '';
+            }
+        });
+
+        function appendMessage(sender, message, timestamp = null) {
+            const msgPara = document.createElement('p');
+            const time = timestamp ? ` [${new Date(timestamp).toLocaleTimeString()}]` : '';
+            msgPara.innerHTML = `<span class="${sender === 'You' ? 'sender' : (sender === 'Receiver' ? 'receiver' : 'system')}">${sender}:</span> ${message} ${time}`;
+            messagesDiv.appendChild(msgPara);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>

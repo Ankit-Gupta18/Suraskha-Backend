@@ -1,6 +1,7 @@
 import psycopg2
 import psycopg2.pool
 import os
+import pandas as pd
 
 class DBManager:
     _instance = None
