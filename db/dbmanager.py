@@ -286,6 +286,104 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
+    def fetch_phone_by_priority(self, priority, table_name: str = "user_contacts"):
+        try:
+            query = f"""
+                SELECT phone_number 
+                FROM {table_name} 
+                WHERE priority = %s;
+            """
+            
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (priority,))
+                result = cursor.fetchall()
+                
+                if result:
+                    phone_numbers = [row[0] for row in result]
+                    return {"status": "success", "phone_numbers": phone_numbers}
+                else:
+                    return {"status": "failed", "message": "No phone numbers found with given priority"}
+        except Exception as e:
+            print(f"Error: Unable to fetch phone numbers from {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+    import math
+
+    def fetch_nearest_phone_numbers(self, latitude: float, longitude: float, table_name: str = "user_contacts", limit: int = 3):
+        try:
+            # Haversine formula to calculate distance between two lat/long points
+            query = f"""
+                SELECT phone_number, (
+                    6371 * acos(
+                        cos(radians(%s)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians(%s)) + 
+                        sin(radians(%s)) * sin(radians(latitude))
+                    )
+                ) AS distance
+                FROM {table_name}
+                ORDER BY distance ASC
+                LIMIT %s;
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (latitude, longitude, latitude, limit))
+                result = cursor.fetchall()
+
+                # Process the result to extract the phone numbers
+                phone_numbers = [{"phone_number": row[0], "distance_km": row[1]} for row in result]
+
+                return {"status": "success", "data": phone_numbers}
+        except Exception as e:
+            print(f"Error: Unable to fetch nearest phone numbers from {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+    def fetch_nearest_police_numbers(self, latitude: float, longitude: float, table_name: str = "police_auth_db", limit: int = 3):
+        try:
+            # Haversine formula to calculate distance between two lat/long points
+            query = f"""
+                SELECT phone_number, (
+                    6371 * acos(
+                        cos(radians(%s)) * cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians(%s)) + 
+                        sin(radians(%s)) * sin(radians(latitude))
+                    )
+                ) AS distance
+                FROM {table_name}
+                ORDER BY distance ASC
+                LIMIT %s;
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (latitude, longitude, latitude, limit))
+                result = cursor.fetchall()
+
+                # Process the result to extract the phone numbers
+                police_numbers = [{"phone_number": row[0], "distance_km": row[1]} for row in result]
+
+                return {"status": "success", "data": police_numbers}
+        except Exception as e:
+            print(f"Error: Unable to fetch nearest police phone numbers from {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+
     def fetch_location_ratings(self, table_name: str = "location_ratings"):
         try:
             # SQL query to fetch location ratings
