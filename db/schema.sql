@@ -115,6 +115,8 @@ CREATE TABLE public.location_rating (
 	rating int2 NULL,
 	updated_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
 	created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+	"location" varchar(255) NOT NULL DEFAULT 'Unknown'::character varying,
+	state varchar(255) NOT NULL DEFAULT 'Unknown'::character varying,
 	CONSTRAINT location_rating_pkey PRIMARY KEY (id),
 	CONSTRAINT location_rating_rating_check CHECK (((rating >= '-5'::integer) AND (rating <= 5)))
 );

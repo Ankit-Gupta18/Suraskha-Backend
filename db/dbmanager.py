@@ -386,8 +386,11 @@ class DBManager:
 
     def fetch_location_ratings(self, table_name: str = "location_ratings"):
         try:
-            # SQL query to fetch location ratings
-            query = f"SELECT id, latitude, longitude, frequency, rating FROM {table_name};"
+            # SQL query to fetch location ratings with additional columns
+            query = f"""
+            SELECT location, state, latitude, longitude, rating 
+            FROM {table_name} ORDER BY rating DESC;
+            """
 
             # Open the connection and execute the query
             with self.get_connection() as connection, connection.cursor() as cursor:
@@ -405,6 +408,48 @@ class DBManager:
             print(f"Error: Unable to fetch data from {table_name}.")
             print(e)
             return None
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+
+    def insert_or_update_location_rating(self, location: str, state: str, latitude: float, longitude: float, new_rating: float, table_name: str = "location_ratings"):
+        try:
+            # SQL query to insert or update location rating
+            query = f"""
+            INSERT INTO {table_name} (location, state, latitude, longitude, rating, frequency)
+            VALUES (%s, %s, %s, %s, %s, 1)
+            ON CONFLICT (latitude, longitude)
+            DO UPDATE 
+            SET 
+                rating = (({table_name}.rating * {table_name}.frequency) + EXCLUDED.rating) / ({table_name}.frequency + 1),
+                frequency = {table_name}.frequency + 1
+            RETURNING id, location, state, latitude, longitude, rating, frequency;
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (location, state, latitude, longitude, new_rating))
+                updated_row = cursor.fetchone()
+
+                # Fetch column names from cursor
+                column_names = [desc[0] for desc in cursor.description]
+
+                # Create a DataFrame from the fetched row
+                updated_location_rating = pd.DataFrame([updated_row], columns=column_names)
+
+                return updated_location_rating
+
+        except Exception as e:
+            print(f"Error: Unable to insert or update data in {table_name}.")
+            print(e)
+            return None
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
     
 
     @staticmethod

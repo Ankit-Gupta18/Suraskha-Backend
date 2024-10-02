@@ -3,7 +3,7 @@ from routers.login_signup import user_signup, police_signup, user_login, police_
 from routers.user_contacts_router import user_contacts_router
 from routers.sos_utils import sos_router
 from chat import chat
-from routers import feedback_router
+from routers import feedback_router, location_rating_router
 from dotenv import load_dotenv
 from fastapi.responses import HTMLResponse   # have to comment later
 
@@ -23,6 +23,7 @@ app.include_router(user_login.router)
 app.include_router(police_login.router)
 app.include_router(user_contacts_router.router)
 app.include_router(feedback_router.router)
+app.include_router(location_rating_router.router)
 app.include_router(chat.router)
 app.include_router(sos_router.router)
 
