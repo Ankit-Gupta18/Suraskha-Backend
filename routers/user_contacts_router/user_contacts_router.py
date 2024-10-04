@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from db.dbmanager import DBManager
+from typing import List
 
 # Instantiate the DB Manager
 db_manager = DBManager().get_instance()
@@ -36,6 +37,28 @@ class UpdateUserContactRequest(BaseModel):
     priority: int  # Priority (0-5)
     latitude: float  # Decimal places limited to 3 in database
     longitude: float  # Decimal places limited to 3 in database
+
+# Define the response model for user contact
+class UserContactResponse(BaseModel):
+    name: str
+    relation: str
+    phone_number: str
+    email: str
+    status: str
+    priority: int
+
+# Assume that db_manager has a method `fetch_all_user_contacts`
+@router.get("/get_all_user_contacts", response_model=List[UserContactResponse])
+async def get_all_user_contacts():
+    # Fetch all user contacts from the database
+    result = db_manager.fetch_all_user_contacts()
+
+    # Handle the result
+    if result["status"] == "error":
+        raise HTTPException(status_code=500, detail=result["message"])
+
+    # Return the user contacts
+    return result["data"]
 
 # API Endpoint for adding a user contact
 @router.post("/add_user_contact")

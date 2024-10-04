@@ -210,6 +210,41 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
+    def fetch_all_user_contacts(self, table_name: str = "user_contacts"):
+        try:
+            query = f"""
+                SELECT name, relation, phone_number, email, status, priority
+                FROM {table_name};
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query)
+                # Fetch all results
+                result = cursor.fetchall()
+
+                # Format the result into a list of dictionaries
+                user_contacts = [
+                    {
+                        "name": row[0],
+                        "relation": row[1],
+                        "phone_number": row[2],
+                        "email": row[3],
+                        "status": row[4],
+                        "priority": row[5]
+                    } for row in result
+                ]
+
+                return {"status": "success", "data": user_contacts}
+        except Exception as e:
+            print(f"Error: Unable to fetch user contacts from {table_name}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+            
     def delete_user_contact_by_phone(self, phone_number: str, table_name: str = "user_contacts"):
         try:
             # SQL query to delete the contact based on the phone number
