@@ -271,14 +271,13 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
-    def update_user_contact_by_phone(self, payload: dict, table_name: str = "user_contacts"):
+    def update_user_contact_by_phone(self, phone_number, payload: dict, table_name: str = "user_contacts"):
         try:
             # Extracting the values from the payload
             aadhaar_number = payload.get("aadhaar_number")
             name = payload.get("name")
             relation = payload.get("relation")
-            phone_number = payload.get("phone_number")
-            new_phone_number = payload.get("phone_number")
+            new_phone_number = payload.get("new_phone_number")
             email = payload.get("email")
             status = payload.get("status")
             priority = payload.get("priority")
