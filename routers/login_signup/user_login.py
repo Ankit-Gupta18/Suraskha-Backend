@@ -19,6 +19,9 @@ class VerifyOTPRequest(BaseModel):
     phone_number: str
     otp: str
 
+class PhoneNumberRequest(BaseModel):
+    phone_number: str
+
 
 @router.post("/user_login_send_otp")
 async def user_login_send_otp(payload: OTPRequest):
@@ -41,9 +44,12 @@ async def verify_otp_route(payload: VerifyOTPRequest):
     if not verify_otp(payload.phone_number, payload.otp):
         raise HTTPException(status_code=400, detail="Invalid OTP")
     
-@router.get("/user_details/{phone_number}")
-async def get_user_details(phone_number: str):
+@router.post("/user_details")
+async def get_user_details(payload: PhoneNumberRequest):
     try:
+        # Extract the phone number from the request body
+        phone_number = payload.phone_number
+
         # Fetch user details using the phone number
         user = db_manager.get_user_by_phone(phone_number)
 
