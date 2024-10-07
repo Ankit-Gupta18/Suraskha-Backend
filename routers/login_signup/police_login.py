@@ -40,3 +40,28 @@ async def verify_otp_route(payload: VerifyOTPRequest):
     # Step 1: Verify OTP
     if not verify_otp(payload.phone_number, payload.otp):
         raise HTTPException(status_code=400, detail="Invalid OTP")
+    
+@router.get("/police_details/{phone_number}")
+async def get_police_details(phone_number: str):
+    try:
+        # Fetch police details using the phone number
+        police = db_manager.get_police_by_phone(phone_number)
+
+        if not police:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Returning the police details as a response
+        return {
+            "status": "success",
+            "data": {
+                "name": police.get("name"),
+                "police_id": police.get("police_id"),
+                "police_station_address": police.get("police_station_address"),
+                "id_card": police.get("id_card"),
+                "phone_number": police.get("phone_number"),
+                "email": police.get("email"),
+            },
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
