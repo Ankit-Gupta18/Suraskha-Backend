@@ -60,7 +60,23 @@ class DBManager:
                 query = "SELECT * FROM user_auth_db WHERE phone_number = %s"
                 cursor.execute(query, (phone_number,))
                 record = cursor.fetchone()
-                return record
+
+                if record:
+                    # Map the record to a dictionary
+                    user = {
+                        "id": record[0],
+                        "name": record[1],
+                        "aadhaar_number": record[2],
+                        "state": record[3],
+                        "age_group": record[4],
+                        "gender": record[5],
+                        "phone_number": record[6],
+                        "email": record[7],
+                        "avatar": record[8]
+                    }
+                    return user
+                else:
+                    return None
         except Exception as e:
             print(f"Error: Unable to fetch user with phone number {phone_number}.")
             print(e)
@@ -69,6 +85,7 @@ class DBManager:
             if cursor:
                 cursor.close()
             self.release_connection(connection)
+
 
     def insert_user_auth(self, payload: dict, table_name: str = "user_auth_db"):
         try:
@@ -107,15 +124,31 @@ class DBManager:
                 query = "SELECT * FROM police_auth_db WHERE phone_number = %s"
                 cursor.execute(query, (phone_number,))
                 record = cursor.fetchone()
-                return record
+
+                if record:
+                    # Map the tuple to a dictionary
+                    police = {
+                        "id": record[0],
+                        "name": record[1],
+                        "police_id": record[2],
+                        "police_station_address": record[3],
+                        "phone_number": record[4],
+                        "email": record[5],
+                        "id_card": record[6],
+                        "avatar": record[7]
+                    }
+                    return police
+                else:
+                    return None
         except Exception as e:
-            print(f"Error: Unable to fetch user with phone number {phone_number}.")
+            print(f"Error: Unable to fetch police with phone number {phone_number}.")
             print(e)
             return None
         finally:
             if cursor:
                 cursor.close()
             self.release_connection(connection)
+
 
     def insert_police_auth(self, payload: dict, table_name: str = "police_auth_db"):
         try:
