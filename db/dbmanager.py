@@ -117,6 +117,29 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
+    def update_user_location(self, aadhaar_number: str, latitude: float, longitude: float, table_name: str = "user_auth_db"):
+        try:
+            # Query to update latitude and longitude for the user identified by aadhaar_number
+            query = f"""
+                UPDATE {table_name}
+                SET latitude = %s, longitude = %s, updated_at = CURRENT_TIMESTAMP
+                WHERE aadhaar_number = %s;
+            """
+
+            # Open the connection and execute the query
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (latitude, longitude, aadhaar_number))
+                connection.commit()
+                return {"status": "success", "message": "Location updated successfully"}
+        except Exception as e:
+            print(f"Error: Unable to update location for aadhaar_number {aadhaar_number}.")
+            print(e)
+            return {"status": "error", "message": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
     
     def get_police_by_phone(self, phone_number):
         try:
@@ -392,7 +415,8 @@ class DBManager:
                         cos(radians(longitude) - radians(%s)) + 
                         sin(radians(%s)) * sin(radians(latitude))
                     )
-                ) AS distance
+                ) AS distance,
+                latitude, longitude
                 FROM {table_name}
                 ORDER BY distance ASC
                 LIMIT %s;
@@ -404,9 +428,10 @@ class DBManager:
                 result = cursor.fetchall()
 
                 # Process the result to extract the phone numbers
-                phone_numbers = [{"phone_number": row[0], "distance_km": row[1]} for row in result]
+                phone_numbers = [{"phone_number": row[0], "distance_km": row[1], "latitude": row[2], "longitude": row[3]} for row in result]
+                user_contacts_locations = [{"latitude": row[2], "longitude": row[3]} for row in result]
 
-                return {"status": "success", "data": phone_numbers}
+                return {"status": "success", "data": phone_numbers, "user_contacts_locations": user_contacts_locations}
         except Exception as e:
             print(f"Error: Unable to fetch nearest phone numbers from {table_name}.")
             print(e)
@@ -426,7 +451,8 @@ class DBManager:
                         cos(radians(longitude) - radians(%s)) + 
                         sin(radians(%s)) * sin(radians(latitude))
                     )
-                ) AS distance
+                ) AS distance,
+                latitude, longitude
                 FROM {table_name}
                 ORDER BY distance ASC
                 LIMIT %s;
@@ -438,9 +464,10 @@ class DBManager:
                 result = cursor.fetchall()
 
                 # Process the result to extract the phone numbers
-                police_numbers = [{"phone_number": row[0], "distance_km": row[1]} for row in result]
+                police_numbers = [{"phone_number": row[0], "distance_km": row[1], "latitude": row[2], "longitude": row[3]} for row in result]
+                police_locations = [{"latitude": row[2], "longitude": row[3]} for row in result]
 
-                return {"status": "success", "data": police_numbers}
+                return {"status": "success", "data": police_numbers, "locations": police_locations}
         except Exception as e:
             print(f"Error: Unable to fetch nearest police phone numbers from {table_name}.")
             print(e)

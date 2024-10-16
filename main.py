@@ -6,6 +6,7 @@ from chat import chat
 from routers import feedback_router, location_rating_router
 from dotenv import load_dotenv
 from fastapi.responses import HTMLResponse   # have to comment later
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 app = FastAPI(
@@ -14,6 +15,15 @@ app = FastAPI(
     version="1.0.0",  # API version
     docs_url="/docs",  # Custom Swagger docs path (optional, default is `/docs`)
     redoc_url="/redoc"  # Custom ReDoc path (optional, default is `/redoc`)
+)
+
+# add cors policy
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3039"],  # Allow your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Include the routers

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 from routers.external.otp_service_twilio import send_otp_via_twilio
 from routers.utils.otp_store_and_verify import store_otp, verify_otp
 from db.dbmanager import DBManager
@@ -42,6 +43,7 @@ async def verify_otp_route(payload: VerifyOTPRequest):
     # Step 1: Verify OTP
     if not verify_otp(payload.phone_number, payload.otp):
         raise HTTPException(status_code=400, detail="Invalid OTP")
+    return JSONResponse(content={"message": "User verified!"}, status_code=200)
     
 @router.post("/police_details")
 async def get_police_details(payload: PhoneNumberRequest):

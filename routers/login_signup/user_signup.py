@@ -45,6 +45,10 @@ async def user_signup(payload: SignupRequest):
     phone_number_exists = adhaar_response.get("is_mobile")
     phone_last_three = payload.phone_number[-3:]
 
+    #TODO:
+    # gender = adhaar_response["data"]["gender"]
+    
+
     if phone_number_exists and str(adhaar_last_three) != str(phone_last_three):
         raise HTTPException(status_code=400, detail="Phone number and Aadhaar mismatch")
 
