@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter
 from chat.websocket_manager import ConnectionManager
 import json
 from db.dbmanager import DBManager
@@ -7,10 +7,11 @@ from db.dbmanager import DBManager
 db_manager = DBManager().get_instance()
 
 app = FastAPI()
+router = APIRouter()
 manager = ConnectionManager()
 
 
-@app.websocket("/ws/{user_id}")
+@router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await manager.connect(user_id, websocket)
     try:
@@ -20,16 +21,16 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
             print(f"Received location from user {user_id}: {location}")
 
             nearest_police = db_manager.fetch_nearest_police_numbers(
-                latitude=location.latitude, 
-                longitude=location.longitude
+                latitude=location['lat'], 
+                longitude=location['lon']
             )
             nearest_contacts = db_manager.fetch_nearest_phone_numbers(
-                latitude=location.latitude, 
-                longitude=location.longitude
+                latitude=location['lat'], 
+                longitude=location['lon']
             )
 
             # Store or update location in the database
-            db_manager.update_user_location(location.latitude, location.longitude)
+            db_manager.update_user_location(user_id, location['lat'], location['lon'])
 
             # Send other users' locations to the current user
             message_data = {

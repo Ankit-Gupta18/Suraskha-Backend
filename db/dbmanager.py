@@ -117,22 +117,22 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
-    def update_user_location(self, aadhaar_number: str, latitude: float, longitude: float, table_name: str = "user_auth_db"):
+    def update_user_location(self, user_id: str, latitude: float, longitude: float, table_name: str = "user_auth_db"):
         try:
             # Query to update latitude and longitude for the user identified by aadhaar_number
             query = f"""
                 UPDATE {table_name}
                 SET latitude = %s, longitude = %s, updated_at = CURRENT_TIMESTAMP
-                WHERE aadhaar_number = %s;
+                WHERE id = %s;
             """
 
             # Open the connection and execute the query
             with self.get_connection() as connection, connection.cursor() as cursor:
-                cursor.execute(query, (latitude, longitude, aadhaar_number))
+                cursor.execute(query, (latitude, longitude, user_id))
                 connection.commit()
                 return {"status": "success", "message": "Location updated successfully"}
         except Exception as e:
-            print(f"Error: Unable to update location for aadhaar_number {aadhaar_number}.")
+            print(f"Error: Unable to update location for aadhaar_number {user_id}.")
             print(e)
             return {"status": "error", "message": str(e)}
         finally:
