@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import requests
+from fastapi.responses import JSONResponse
 from db.dbmanager import DBManager
 import pandas as pd
 
@@ -26,7 +26,7 @@ async def fetch_location_ratings():
         ratings_df = db_manager.fetch_location_ratings()
 
         if ratings_df.empty:
-            return {"status": "ok", "message": "No location ratings found."}
+            return JSONResponse(content={"message": "No location ratings found."}, status_code=400)
 
         ratings = ratings_df.to_dict(orient="records")
         return {"status": "ok", "ratings": ratings}

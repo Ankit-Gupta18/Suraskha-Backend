@@ -43,7 +43,7 @@ async def user_login_send_otp(payload: OTPRequest):
 async def verify_otp_route(payload: VerifyOTPRequest):
     # Step 1: Verify OTP
     if not verify_otp(payload.phone_number, payload.otp):
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+        return JSONResponse(content={"message": "Invalid OTP"}, status_code=400)
     return JSONResponse(content={"message": "User verified!"}, status_code=200)
 
     
@@ -57,7 +57,7 @@ async def get_user_details(payload: PhoneNumberRequest):
         user = db_manager.get_user_by_phone(phone_number)
 
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            return JSONResponse(content={"message": "User not found"}, status_code=404)
 
         # Returning the user details as a response
         return {

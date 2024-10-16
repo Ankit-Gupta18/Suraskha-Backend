@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from routers.external.otp_service_twilio import send_message_via_twilio, send_whatsapp_message
 from db.dbmanager import DBManager
@@ -60,7 +61,7 @@ async def send_sos(request: SOSRequest):
             send_message_via_twilio(top_priority_contact['phone_number'], sos_message)
             send_whatsapp_message(police['phone_number'], sos_message)
 
-        return {"status": "success", "message": "SOS messages sent successfully"}
+        return JSONResponse(content={"message": "SOS messages sent successfully"}, status_code=200)
 
     except Exception as e:
         print(f"Error sending SOS: {e}")

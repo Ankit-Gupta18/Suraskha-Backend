@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from db.dbmanager import DBManager
 from typing import List
@@ -65,7 +66,7 @@ async def get_all_user_contacts():
 async def add_user_contact(payload: UserContactRequest):
     # Ensure valid priority range
     if not (0 <= payload.priority <= 5):
-        raise HTTPException(status_code=400, detail="Priority must be between 0 and 5.")
+        return JSONResponse(content={"message": "Priority must be between 0 and 5."}, status_code=400)
 
     # Prepare the payload dictionary
     contact_payload = {
@@ -87,7 +88,7 @@ async def add_user_contact(payload: UserContactRequest):
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
 
-    return {"status": "ok", "message": result["message"]}
+    return JSONResponse(content={"message": result["message"]}, status_code=200)
 
 # API Endpoint for deleting a user contact by phone number
 @router.delete("/delete_user_contact")
@@ -102,14 +103,14 @@ async def delete_user_contact(payload: DeleteUserContactRequest):
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
 
-    return {"status": "ok", "message": result["message"]}
+    return JSONResponse(content={"message": result["message"]}, status_code=200)
 
 # API Endpoint for updating a user contact
 @router.put("/update_user_contact")
 async def update_user_contact(payload: UpdateUserContactRequest):
     # Ensure valid priority range
     if not (0 <= payload.priority <= 5):
-        raise HTTPException(status_code=400, detail="Priority must be between 0 and 5.")
+        return JSONResponse(content={"message": "Priority must be between 0 and 5."}, status_code=400)
 
     # Prepare the payload dictionary
     contact_payload = {
@@ -131,4 +132,4 @@ async def update_user_contact(payload: UpdateUserContactRequest):
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
 
-    return {"status": "ok", "message": result["message"]}
+    return JSONResponse(content={"message": result["message"]}, status_code=200)

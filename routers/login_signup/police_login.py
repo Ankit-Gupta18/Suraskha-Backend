@@ -33,17 +33,17 @@ async def user_login_send_otp(payload: OTPRequest):
         # Step 2: Send OTP via Twilio
         send_otp_via_twilio(payload.phone_number, otp)
     else:
-        return {"status": "ok", "message": "User not registered, please register first!"}
+        return JSONResponse(content={"message": "Police not registered, please register first!"}, status_code=400)
 
-    return {"status": "ok", "message": "User verified, OTP sent!"}
+    return JSONResponse(content={"message": "Police verified, OTP sent!"}, status_code=200)
 
 
 @router.post("/police_signin_verify_otp")
 async def verify_otp_route(payload: VerifyOTPRequest):
     # Step 1: Verify OTP
     if not verify_otp(payload.phone_number, payload.otp):
-        raise HTTPException(status_code=400, detail="Invalid OTP")
-    return JSONResponse(content={"message": "User verified!"}, status_code=200)
+        return JSONResponse(content={"message": "Invalid OTP!"}, status_code=400)
+    return JSONResponse(content={"message": "Police verified!"}, status_code=200)
     
 @router.post("/police_details")
 async def get_police_details(payload: PhoneNumberRequest):
@@ -55,7 +55,7 @@ async def get_police_details(payload: PhoneNumberRequest):
         police = db_manager.get_police_by_phone(phone_number)
 
         if not police:
-            raise HTTPException(status_code=404, detail="User not found")
+            return JSONResponse(content={"message": "Police data not found"}, status_code=404)
 
         # Returning the police details as a response
         return {

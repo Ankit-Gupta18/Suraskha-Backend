@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 from db.dbmanager import DBManager
 
 db_manager = DBManager().get_instance()
@@ -19,7 +20,7 @@ class FeedbackRequest(BaseModel):
 async def submit_feedback(payload: FeedbackRequest):
     # Ensure valid rating range
     if not (1 <= payload.rating <= 5):
-        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
+        return JSONResponse(content={"message": "Rating must be between 1 and 5."}, status_code=400)
 
     # Prepare the payload dictionary
     feedback_payload = {
@@ -36,4 +37,4 @@ async def submit_feedback(payload: FeedbackRequest):
     if result["status"] == "error":
         raise HTTPException(status_code=500, detail=result["message"])
 
-    return {"status": "ok", "message": result["message"]}
+    return JSONResponse(content={"message": result["message"]}, status_code=200)
