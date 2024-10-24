@@ -61,6 +61,7 @@ async def get_police_details(payload: PhoneNumberRequest):
         return {
             "status": "success",
             "data": {
+                "police_id": police.get("id"),
                 "name": police.get("name"),
                 "police_id": police.get("police_id"),
                 "police_station_address": police.get("police_station_address"),

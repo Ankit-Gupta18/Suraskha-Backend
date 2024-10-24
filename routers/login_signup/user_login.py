@@ -63,6 +63,7 @@ async def get_user_details(payload: PhoneNumberRequest):
         return {
             "status": "success",
             "data": {
+                "user_id": user.get("id"),
                 "name": user.get("name"),
                 "aadhaar_number": user.get("aadhaar_number"),
                 "state": user.get("state"),
