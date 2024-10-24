@@ -416,7 +416,7 @@ class DBManager:
                         sin(radians(%s)) * sin(radians(latitude))
                     )
                 ) AS distance,
-                latitude, longitude, id
+                latitude, longitude, id, name
                 FROM {table_name}
                 ORDER BY distance ASC
                 LIMIT %s;
@@ -429,7 +429,7 @@ class DBManager:
 
                 # Process the result to extract the phone numbers
                 phone_numbers = [{"phone_number": row[0], "distance_km": row[1], "latitude": row[2], "longitude": row[3]} for row in result]
-                user_contacts_locations = [{"user_id": row[4], "latitude": row[2], "longitude": row[3]} for row in result]
+                user_contacts_locations = [{"user_id": row[4], "name": row[5], "latitude": row[2], "longitude": row[3]} for row in result]
 
                 return {"status": "success", "data": phone_numbers, "user_contacts_locations": user_contacts_locations}
         except Exception as e:
@@ -452,7 +452,7 @@ class DBManager:
                         sin(radians(%s)) * sin(radians(latitude))
                     )
                 ) AS distance,
-                latitude, longitude, id
+                latitude, longitude, id, name
                 FROM {table_name}
                 ORDER BY distance ASC
                 LIMIT %s;
@@ -465,7 +465,7 @@ class DBManager:
 
                 # Process the result to extract the phone numbers
                 police_numbers = [{"phone_number": row[0], "distance_km": row[1], "latitude": row[2], "longitude": row[3]} for row in result]
-                police_locations = [{"police_id": row[4], "latitude": row[2], "longitude": row[3]} for row in result]
+                police_locations = [{"police_id": row[4], "name": row[5], "latitude": row[2], "longitude": row[3]} for row in result]
 
                 return {"status": "success", "data": police_numbers, "locations": police_locations}
         except Exception as e:
