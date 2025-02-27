@@ -5,6 +5,7 @@ from routers.sos_utils import sos_router
 from chat import chat
 from location import location_web_socket
 from routers import feedback_router, location_rating_router
+from routers.find_my_buddy import find_my_buddy_router
 from dotenv import load_dotenv
 from fastapi.responses import HTMLResponse   # have to comment later
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,6 +39,7 @@ app.include_router(location_rating_router.router)
 app.include_router(chat.router)
 app.include_router(location_web_socket.router)
 app.include_router(sos_router.router)
+app.include_router(find_my_buddy_router.router)
 
 
 # Serve the index.html at the root

@@ -27,3 +27,7 @@ docker build -t suraksha-backend .
 ## start server
 
 docker run -it --rm -p 8000:8000 --env-file .env suraksha-backend
+
+
+## To get Swagger API
+use "/docs"

@@ -2,6 +2,7 @@ import psycopg2
 import psycopg2.pool
 import os
 import pandas as pd
+from datetime import datetime
 
 class DBManager:
     _instance = None
@@ -544,7 +545,94 @@ class DBManager:
                 cursor.close()
             self.release_connection(connection)
 
-    
+    def insert_find_my_buddy_request(self, user_id: int, source: dict, destination: dict, date_time: str, table_name: str = "find_my_buddy"):
+        try:
+            query = f"""
+                INSERT INTO {table_name} (user_id, source, destination, date_time)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id;
+            """
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (user_id, json.dumps(source), json.dumps(destination), date_time))
+                connection.commit()
+                inserted_id = cursor.fetchone()[0]  # Fetch the inserted ID
+
+                return {"success": True, "inserted_id": inserted_id}
+        except Exception as e:
+            print(f"Database Error (Insert Request): {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
+    def search_find_my_buddy_requests(self, source: dict, destination: dict, date_time: str, source_diameter: float, destination_diameter: float, time_range: int, table_name: str = "find_my_buddy"):
+        """
+        Searches for matching requests in the find_my_buddy table based on proximity and time range.
+
+        :param source: JSON object containing latitude & longitude of the source
+        :param destination: JSON object containing latitude & longitude of the destination
+        :param date_time: Date and time in 'YYYY-MM-DD HH:MM:SS' format
+        :param source_diameter: Allowed range (in km) for matching source
+        :param destination_diameter: Allowed range (in km) for matching destination
+        :param time_range: Allowed deviation (in minutes) for matching time
+        :param table_name: Table name (default is 'find_my_buddy')
+        :return: List of matching requests
+        """
+        try:
+            query = f"""
+                SELECT * FROM {table_name}
+                WHERE 
+                    ST_DWithin(
+                        ST_SetSRID(ST_MakePoint((source->>'long')::NUMERIC, (source->>'lat')::NUMERIC), 4326),
+                        ST_SetSRID(ST_MakePoint(%s, %s), 4326),
+                        %s * 1000
+                    )
+                AND 
+                    ST_DWithin(
+                        ST_SetSRID(ST_MakePoint((destination->>'long')::NUMERIC, (destination->>'lat')::NUMERIC), 4326),
+                        ST_SetSRID(ST_MakePoint(%s, %s), 4326),
+                        %s * 1000
+                    )
+                AND 
+                    date_time BETWEEN (%s::TIMESTAMP - INTERVAL '%s minutes') 
+                                AND (%s::TIMESTAMP + INTERVAL '%s minutes')
+                ORDER BY date_time ASC;
+            """
+
+            with self.get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(query, (
+                    source["long"], source["lat"], source_diameter,
+                    destination["long"], destination["lat"], destination_diameter,
+                    date_time, time_range, date_time, time_range
+                ))
+                rows = cursor.fetchall()
+
+                # Fetch column names from cursor
+                column_names = [desc[0] for desc in cursor.description]
+
+                # Convert rows to list of dictionaries with date_time serialization
+                results = []
+                for row in rows:
+                    row_dict = dict(zip(column_names, row))
+                    
+                    # Convert datetime fields to string format
+                    for key in ["date_time", "created_at", "updated_at"]:
+                        if key in row_dict and row_dict[key] is not None:
+                            if isinstance(row_dict[key], datetime):  # ✅ Ensure correct type check
+                                row_dict[key] = row_dict[key].isoformat()
+                    
+                    results.append(row_dict)
+
+                return {"success": True, "data": results}
+        except Exception as e:
+            print(f"Database Error (Search Requests): {e}")
+            return {"success": False, "error": str(e)}
+        finally:
+            if cursor:
+                cursor.close()
+            self.release_connection(connection)
+
 
     @staticmethod
     def get_instance():
