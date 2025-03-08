@@ -1,8 +1,7 @@
+import json
 import psycopg2
 import psycopg2.pool
 import os
-import pandas as pd
-from datetime import datetime
 
 class DBManager:
     _instance = None
@@ -11,32 +10,38 @@ class DBManager:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.initialize()
+            cls._instance.initialize()  # Call initialize on instance
         return cls._instance
-    
-    def initialize(cls):
-        if cls._connection_pool is None:
+
+    def initialize(self):
+        """Initialize the database connection pool."""
+        if self._connection_pool is None:
             try:
                 db_config = {
-                    'host': os.environ.get("SURAKSHA_DB_HOST", ""),
-                    'port': os.environ.get("SURAKSHA_DB_PORT", ""),
-                    'database': os.environ.get("SURAKSHA_DB_DATABASE", ""),
-                    'user': os.environ.get("SURAKSHA_DB_USER", ""),
-                    'password': os.environ.get("SURAKSHA_DB_PASSWORD", "")
+                    'host': os.getenv("SURAKSHA_DB_HOST", "suraksha-db-suraksha.l.aivencloud.com"),
+                    'port': os.getenv("SURAKSHA_DB_PORT", "18587"),
+                    'dbname': os.getenv("SURAKSHA_DB_DATABASE", "defaultdb"),
+                    'user': os.getenv("SURAKSHA_DB_USER", "avnadmin"),
+                    'password': os.getenv("SURAKSHA_DB_PASSWORD", "AVNS_mOkQmQ3rOjtGQpXwaDT"),
+                    'sslmode': os.getenv("SURAKSHA_DB_SSLMODE", "require"),
+                    'sslrootcert': os.getenv("SURAKSHA_DB_SSL_CERT", "ca.pem"),
                 }
-                cls._connection_pool = psycopg2.pool.SimpleConnectionPool(10, 10, **db_config)
+
+                self._connection_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **db_config)
                 print("Initialized database connection pool successfully.")
             except Exception as e:
-                print("Error initializing database connection pool.")
-                print(e)
+                print("Error initializing database connection pool:", e)
 
-    def get_connection(cls):
-        if cls._connection_pool is None:
-            cls.initialize()
-        return cls._connection_pool.getconn()
+    def get_connection(self):
+        """Get a connection from the pool."""
+        if self._connection_pool is None:
+            self.initialize()
+        return self._connection_pool.getconn()
 
-    def release_connection(cls, conn):
-        cls._connection_pool.putconn(conn)
+    def release_connection(self, conn):
+        """Release the connection back to the pool."""
+        if conn:
+            self._connection_pool.putconn(conn)
 
 
 

@@ -1,17 +1,13 @@
-FROM python:3.11.6
+# Use a slim Python image to reduce size
+FROM --platform=linux/amd64 python:3.11-slim
 
+# Set working directory
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
 
-# Create and activate virtual environment
-RUN python -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-
-# Copy requirements and install dependencies
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -19,9 +15,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
-# Set executable permissions for UVicorn binary
-RUN chmod +x /venv/bin/uvicorn
-
-# Expose port and define the command to run the application
+# Expose port 8080
 EXPOSE 8080
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+
+# Run FastAPI application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
