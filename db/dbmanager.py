@@ -22,7 +22,7 @@ class DBManager:
                     'port': os.getenv("SURAKSHA_DB_PORT", "18587"),
                     'dbname': os.getenv("SURAKSHA_DB_DATABASE", "defaultdb"),
                     'user': os.getenv("SURAKSHA_DB_USER", "avnadmin"),
-                    'password': os.getenv("SURAKSHA_DB_PASSWORD", "AVNS_mOkQmQ3rOjtGQpXwaDT"),
+                    'password': os.getenv("SURAKSHA_DB_PASSWORD", ""),
                     'sslmode': os.getenv("SURAKSHA_DB_SSLMODE", "require"),
                     'sslrootcert': os.getenv("SURAKSHA_DB_SSL_CERT", "ca.pem"),
                 }
